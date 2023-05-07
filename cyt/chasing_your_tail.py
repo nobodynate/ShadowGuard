@@ -11,16 +11,16 @@ import os
 import json
 import pathlib
 
-
 ### Check for/make subdirectories for logs, ignore lists etc.
-cyt_sub = pathlib.Path('/home/pi/Desktop/cyt/cyt_sub')
+cyt_sub = os.path.expanduser('~/Desktop/cyt/cyt_sub')
 cyt_sub.mkdir(parents=True, exist_ok=True)
 
 print ('Current Time: ' + time.strftime('%Y-%m-%d %H:%M:%S'))
 
 ### Create Log file
 
-log_file_name = '/home/pi/Desktop/cyt/cyt_sub/cyt_log_' + time.strftime('%m%d%y_%H%M%S')
+timestamp = time.strftime('%m%d%y_%H%M%S')
+log_file_name = os.path.expanduser(f'~/Desktop/cyt/cyt_sub/cyt_log_{timestamp}')
 
 cyt_log = open(log_file_name,"w", buffering=1) 
 
@@ -63,7 +63,7 @@ cyt_log.write ('{} MACs added to ignore list. \n'.format(len(ignore_list)))
 cyt_log.write ('{} Probed SSIDs added to ignore list. \n'.format(len(probe_ignore_list)))
 
 ### Set Initial Variables
-db_path = '/home/pi/kismet_logs/*.kismet'
+db_path = os.path.expanduser('~/kismet_logs/*.kismet')
 
 ###Initialize Lists
 current_macs = []

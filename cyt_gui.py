@@ -1,28 +1,28 @@
 import tkinter as tk
 import subprocess
+import os
 
-
-    
+cyt_dir = os.path.expanduser('~/Desktop/cyt')
 
 def write_slogan():
     print("Checking Status")
     #Change lxterminal to gnome-terminal, xterm etc as needed
-    subprocess.call(["lxterminal", "-e" , "/home/pi/Desktop/cyt/monitor.sh"]) 
+    subprocess.call(["lxterminal", "-e" , f'{cyt_dir}/monitor.sh']) 
     
     
     
 def func_delete_ignore():
     print("Deleting Ignore Lists")
-    subprocess.call(["lxterminal", "-e" , "/home/pi/Desktop/cyt/delete_ignore_lists.sh"])
+    subprocess.call(["lxterminal", "-e" , f'{cyt_dir}/delete_ignore_lists.sh'])
     
     
 def func_create_ignore():
     print("Creating Ignore Lists")
-    subprocess.call(["lxterminal", "-e" , "python3", "/home/pi/Desktop/cyt/create_ignore_list.py"])
+    subprocess.call(["lxterminal", "-e" , "python3", f'{cyt_dir}/create_ignore_list.py'])
     
 def func_run_cyt():
     print("Running CYT")
-    subprocess.call(["lxterminal", "-e" , "/home/pi/Desktop/cyt/chasing_your_tail.sh"])
+    subprocess.call(["lxterminal", "-e" , f'{cyt_dir}/chasing_your_tail.sh'])
 
 root = tk.Tk()
 root.title('Chasing Your Tail Viewer')

@@ -6,7 +6,7 @@ import pathlib
 
 
 ### Check for/make subdirectories for logs, ignore lists etc.
-cyt_sub = pathlib.Path('/home/pi/Desktop/cyt/')
+cyt_sub = os.path.expanduser('~/Desktop/cyt/')
 cyt_sub.mkdir(parents=True, exist_ok=True)
 
 
@@ -15,7 +15,7 @@ non_alert_list = []
 non_alert_ssid_list = []
 
 ### Set Initial Variables
-db_path = '/home/pi/kismet_logs/*.kismet'
+db_path = os.path.expanduser('~/kismet_logs/*.kismet')
 
 ######Find Newest Kismet DB file
 list_of_files = glob.glob(db_path)
@@ -42,9 +42,9 @@ sql_fetch(con)
 
 print ('Added {} MACs to the ignore list.'.format(len(non_alert_list)))
 
-ignore_list = open("/home/pi/Desktop/cyt/ignore_list.py","w")
-ignore_list.write("ignore_list = " + str(non_alert_list))
-ignore_list.close()
+ignore_list = os.path.expanduser('~/Desktop/cyt/ignore_list.py')
+with open(ignore_list, 'w') as fp:
+    fp.write("ignore_list = " + str(non_alert_list))
 
 def grab_all_probes(con): 
     cursorObj = con.cursor()
@@ -62,6 +62,6 @@ def grab_all_probes(con):
 grab_all_probes(con)
 
 print ('Added {} Probed SSIDs to the ignore list.'.format(len(non_alert_ssid_list)))
-ignore_list_ssid = open("/home/pi/Desktop/cyt/ignore_list_ssid.py","w")
-ignore_list_ssid.write("non_alert_ssid_list = " + str(non_alert_ssid_list))
-ignore_list_ssid.close()
+ignore_list_ssid = os.path.expanduser('~/Desktop/cyt/ignore_list_ssid.py')
+with open(ignore_list_ssid, 'w') as fp:
+    fp.write("non_alert_ssid_list = " + str(non_alert_ssid_list))

@@ -29,7 +29,7 @@ autostartFile="/etc/xdg/autostart/display.desktop"
 echo "[Desktop Entry]" | sudo tee -a $autostartFile
 echo "Name=cyt_gui" | sudo tee -a $autostartFile
 echo "Exec=$HOME/Desktop/cyt_gui.sh" | sudo tee -a $autostartFile
-echo "@reboot sleep 30 && /home/pi/Desktop/cyt/wlan1_to_mon.sh &" | sudo tee -a $autostartFile
+echo "@reboot sleep 30 && $HOME/Desktop/cyt/wlan1_to_mon.sh &" | sudo tee -a $autostartFile
 echo "@reboot sleep 60 && /usr/bin/kismet &" | sudo tee -a $autostartFile
 
 echo "Prereq installer complete. Please reboot now"
