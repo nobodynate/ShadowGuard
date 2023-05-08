@@ -1,37 +1,45 @@
 import subprocess
+import time
 
 class SHADOWGUARD():
     def __init__(self):
-        self.interfaces = None
-        self.latest_db = self.get_kismet_db()
-        self.zero_to_five = None
-        self.five_to_ten = None
-        pass
+        self.monitor()
+        self.init_logs()
+        self.init_lists()
 
-    def init_interfaces(self):
-        pass
-
-    def monitor(self):
-        """Checks that kismet is running and monitor mode enabled"""
-        # Is Kismet Running?
-        processes = subprocess.check_output('ps aux | grep kismet').decode('utf-8').splitlines()
+    def check_kismet(self):
+        """Start kismet if it isn't already running"""
+        processes = subprocess.getoutput('ps aux | grep kismet').splitlines()
         if len(processes) <= 2:
-            raise "Kismet is not running!"
-            exit()
-        
-        # Monitor Mode enabled?
-        monitoring_interfaces = []
-        for interface in self.interfaces:
-            iw_output = subprocess.check_output('iwconfig').decode('utf-8')
-            if "Mode:Monitor" not in iw_output:
-                raise f"Monitor mode not enabled on {interface}"
-                exit()
+            self.start_kismet()
 
-        # Return true if both checks pass
-        return True
+    def check_interfaces(self):
+        """Put interfaces in monitor mode if not already"""
+        monitoring_interfaces = []
+        monitor_enabled = False
+        while not monitor_enabled:
+            iw_output = subprocess.getoutput('iwconfig')
+            monitor_enabled = "Mode:Monitor" in iw_output
+            if not monitor_enabled:
+                print('Trying monitor mode')
+                enable_monitor = [
+                    'sudo ifconfig wlan0 down',
+                    'sudo iwconfig wlan0 mode monitor',
+                    'sudo ifconfig wlan0 up',
+                    'sudo ifconfig wlan1 down',
+                    'sudo iwconfig wlan1 mode monitor',
+                    'sudo ifconfig wlan1 up',
+                ]
+                for command in enable_monitor:
+                    print(subprocess.getoutput(command))
 
     def start_kismet(self):
-        pass
+        """starts kismet"""
+        subprocess.getoutput('/usr/bin/kismet &')
+
+    def monitor(self):
+        self.check_kismet()
+        self.check_interfaces()
 
     def get_kismet_db(self):
         pass
@@ -45,6 +53,46 @@ class SHADOWGUARD():
     def get_ssid_from(self, start_time, end_time):
         pass
 
+    def fetch_from(self, start_time, end_time):
+        """get data from a timeframe"""
+        data = {}
+        data['macs'] = self.get_macs_from(start_time, end_time)
+        data['ssids'] = self.get_ssid_from(start_time, end_time)
+        return data
+
     def rotate_lists(self):
         pass
-
+    
+    def check_logs(self):
+        pass
+    
+    def fetch(self):
+        self.past_five = self.fetch_from(self.time_now, self.time_five)
+        self.five_to_ten = self.fetch_from(self.time_five, self.time_ten)
+        self.ten_to_fifteen = self.fetch_from(self.time_ten, self.time_fifteen)
+        self.fifteen_to_twenty = self.fetch_from(self.time_fifteen, self.time_twenty)
+    
+    def fetch_current(self):
+        # Get last two mins
+        # Check if they're in 10-20 min lists
+        pass
+      
+if __name__ == '__main__':
+    sg = SHADOWGUARD()
+    sg.monitor()
+    sg.get_times()
+    sg.init_db()
+    sg.fetch()
+    
+    time_count = 0
+    while True:
+        time_count += 1
+        if time_count % 5 == 0:
+            sg.fetch_current()
+            sg.update_lists()
+            sg.get_times()
+            sg.clear_recent()
+            sg.rotate_lists()
+        
+        time.sleep(60)
+        

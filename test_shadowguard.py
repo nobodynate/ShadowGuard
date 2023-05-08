@@ -1,5 +1,10 @@
-from shadowguard import SHADOWGUARD as sg
+import shadowguard
 
-def test_function():
+sg = shadowguard.SHADOWGUARD()
+
+def test_monitor():
     sg.monitor()
     assert True
+
+if __name__ == '__main__':
+    test_function()
