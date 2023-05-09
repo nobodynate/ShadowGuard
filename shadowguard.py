@@ -1,48 +1,75 @@
 import subprocess
 import time
+import os
+import glob
 
 class SHADOWGUARD():
-    def __init__(self):
-        self.monitor()
+    def __init__(self, interfaces=['wlan0']):
+        self.interfaces = interfaces
         self.init_logs()
         self.init_lists()
 
-    def check_kismet(self):
-        """Start kismet if it isn't already running"""
-        processes = subprocess.getoutput('ps aux | grep kismet').splitlines()
-        if len(processes) <= 2:
-            self.start_kismet()
+    def monitor_enabled(self, interface):
+        """Checks if interface is in monitor mode"""
+        command = f'iwconfig {interface}'
+        iw_output = subprocess.getoutput(command)
+        monitor_enabled = "Mode:Monitor" in iw_output        
 
-    def check_interfaces(self):
-        """Put interfaces in monitor mode if not already"""
-        monitoring_interfaces = []
-        monitor_enabled = False
-        while not monitor_enabled:
-            iw_output = subprocess.getoutput('iwconfig')
-            monitor_enabled = "Mode:Monitor" in iw_output
-            if not monitor_enabled:
-                print('Trying monitor mode')
-                enable_monitor = [
-                    'sudo ifconfig wlan0 down',
-                    'sudo iwconfig wlan0 mode monitor',
-                    'sudo ifconfig wlan0 up',
-                    'sudo ifconfig wlan1 down',
-                    'sudo iwconfig wlan1 mode monitor',
-                    'sudo ifconfig wlan1 up',
-                ]
-                for command in enable_monitor:
-                    print(subprocess.getoutput(command))
+        return monitor_enabled    
 
+    def start_monitor(self, interface):
+        """Tries to enable monitor mode on the specified interface"""
+        command = f'sudo ifconfig {interface} down'
+        command += f'&& sudo iwconfig {interface} mode monitor'
+        command += f'&& sudo ifconfig {interface} up'
+        return subprocess.getoutput(command)
+
+    def stop_monitor(self, interface):
+        """Tries to disable monitor mode on the specified interface"""
+        command = f'sudo ifconfig {interface} down'
+        command += f'&& sudo iwconfig {interface} mode managed'
+        command += f'&& sudo ifconfig {interface} up'
+        return subprocess.getoutput(command)
+
+    def kismet_running(self):
+        """Check if kismet is running"""
+        processes = subprocess.getoutput('ps aux | grep "kismet --daemonize" | grep -v grep')
+        
+        # grep counts as a process, so kismet + grep = 2 or more processes
+        print(processes)
+        print(len(processes))
+        kismet_running = len(processes) >= 1
+        return kismet_running
+        
     def start_kismet(self):
         """starts kismet"""
-        subprocess.getoutput('/usr/bin/kismet &')
+        subprocess.Popen(['/usr/bin/kismet', '--daemonize'])
+        time.sleep(5)
+
+    def stop_kismet(self):
+        """stops kismet"""
+        while self.kismet_running():
+            pids = subprocess.getoutput('ps aux | grep "kismet --daemonize" | grep -v grep | cut -d " " -f 7')
+            pid = pids
+            if '\n' in pids:
+                pid = pids.splitlines()[0]
+            subprocess.getoutput(f'kill -9 {pid}')
 
     def monitor(self):
-        self.check_kismet()
-        self.check_interfaces()
+        """Checks kismet and monitor mode, start if stopped"""
+        for interface in self.interfaces:
+            if not self.monitor_enabled(interface):
+                self.start_monitor(interface)
+        
+        if not self.kismet_running():
+            self.start_kismet()
 
     def get_kismet_db(self):
-        pass
+        """Get the most recent kismet db file"""
+        kismet_dbs = glob.glob('*.kismet')
+        latest_file = max(kismet_dbs, key=os.path.getctime)
+
+        return latest_file
 
     def query_kismet(self):
         pass
@@ -76,7 +103,13 @@ class SHADOWGUARD():
         # Get last two mins
         # Check if they're in 10-20 min lists
         pass
+   
+    def init_logs(self):
+       pass
       
+    def init_lists(self):
+       pass
+
 if __name__ == '__main__':
     sg = SHADOWGUARD()
     sg.monitor()
